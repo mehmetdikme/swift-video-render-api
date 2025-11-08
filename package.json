@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "FFmpeg-based video merger for Swift Intelligence automation",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
@@ -16,8 +17,4 @@
   "engines": {
     "node": ">=16.x"
   }
-  {
-  "type": "module"
-  }
-
 }
