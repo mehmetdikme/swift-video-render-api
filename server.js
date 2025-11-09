@@ -69,10 +69,14 @@ app.post("/render", async (req, res) => {
 
     // FFmpeg ile birleştir
     const command = ffmpeg(videoPath)
-      .addInput(audioPath)
+      .input(audioPath)
       .videoCodec("libx264")
       .audioCodec("aac")
-      .outputOptions(["-shortest", "-preset ultrafast"])
+      .outputOptions([
+        "-preset ultrafast",
+        "-stream_loop -1"  // ✅ Videoyu loop'la (audio bitene kadar)
+      ])
+      .inputOptions(["-stream_loop -1"])  // ✅ Video input'u loop'la
       .output(outputPath);
 
     // Altyazı ekle (opsiyonel)
