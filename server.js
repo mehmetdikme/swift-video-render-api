@@ -67,16 +67,14 @@ app.post("/render", async (req, res) => {
 
     console.log("🎬 Starting FFmpeg...");
 
-    // FFmpeg ile birleştir
-    const command = ffmpeg(videoPath)
+    // FFmpeg ile birleştir (DÜZELTILMIŞ)
+    const command = ffmpeg()
+      .input(videoPath)
+      .inputOptions(["-stream_loop -1"])  // ✅ Video loop
       .input(audioPath)
       .videoCodec("libx264")
       .audioCodec("aac")
-      .outputOptions([
-        "-preset ultrafast",
-        "-stream_loop -1"  // ✅ Videoyu loop'la (audio bitene kadar)
-      ])
-      .inputOptions(["-stream_loop -1"])  // ✅ Video input'u loop'la
+      .outputOptions(["-preset ultrafast", "-shortest"])  // ✅ Audio bitince kes
       .output(outputPath);
 
     // Altyazı ekle (opsiyonel)
