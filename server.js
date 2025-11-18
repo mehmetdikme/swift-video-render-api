@@ -77,12 +77,13 @@ app.post("/render", async (req, res) => {
       .outputOptions(["-preset ultrafast", "-shortest"])  // ✅ Audio bitince kes
       .output(outputPath);
 
-    // Altyazı ekle (FONT BOYUTU KÜÇÜLTÜLDÜ)
+    
+    // Altyazı ekle (SADECE FONT SIZE DEĞİŞTİRİLDİ)
     if (subtitles) {
-      command.outputOptions([
-        `-vf subtitles=${subtitlePath}:force_style='FontSize=20,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2,MarginV=20'`
-      ]);
-    }
+  command.outputOptions([
+    `-vf subtitles=${subtitlePath}:force_style='FontSize=20,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2'`
+  ]);
+  }
 
     command.on("start", (cmd) => {
       console.log("🔧 FFmpeg command:", cmd);
