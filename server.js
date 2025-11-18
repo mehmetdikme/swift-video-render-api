@@ -67,7 +67,7 @@ app.post("/render", async (req, res) => {
 
     console.log("🎬 Starting FFmpeg...");
 
-    // FFmpeg ile birleştir (DÜZELTILMIŞ)
+    // FFmpeg ile birleştir
     const command = ffmpeg()
       .input(videoPath)
       .inputOptions(["-stream_loop -1"])  // ✅ Video loop
@@ -77,10 +77,10 @@ app.post("/render", async (req, res) => {
       .outputOptions(["-preset ultrafast", "-shortest"])  // ✅ Audio bitince kes
       .output(outputPath);
 
-    // Altyazı ekle (opsiyonel)
+    // Altyazı ekle (FONT BOYUTU KÜÇÜLTÜLDÜ)
     if (subtitles) {
       command.outputOptions([
-        `-vf subtitles=${subtitlePath}:force_style='FontSize=24,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2'`
+        `-vf subtitles=${subtitlePath}:force_style='FontSize=20,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2,MarginV=20'`
       ]);
     }
 
