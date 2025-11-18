@@ -35,6 +35,7 @@ app.post("/render", async (req, res) => {
     // Unique ID oluştur
     const jobId = Date.now();
     const videoPath = `video_${jobId}.mp4`;
+    const videoWithSubsPath = `video_subs_${jobId}.mp4`;
     const audioPath = `audio_${jobId}.mp3`;
     const subtitlePath = `subtitles_${jobId}.srt`;
     const outputPath = `final_${jobId}.mp4`;
@@ -67,23 +68,44 @@ app.post("/render", async (req, res) => {
 
     console.log("🎬 Starting FFmpeg...");
 
-    // FFmpeg ile birleştir
+    // ADIM 1: Video'ya altyazı ekle (eğer varsa)
+    if (subtitles) {
+      console.log("📝 Adding subtitles to video...");
+      
+      await new Promise((resolve, reject) => {
+        ffmpeg(videoPath)
+          .outputOptions([
+            `-vf subtitles=${subtitlePath}:force_style='FontSize=20,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2'`,
+            "-preset ultrafast",
+            "-c:a copy"
+          ])
+          .output(videoWithSubsPath)
+          .on("end", () => {
+            console.log("✅ Subtitles added to video");
+            resolve();
+          })
+          .on("error", (err) => {
+            console.error("❌ Subtitle error:", err);
+            reject(err);
+          })
+          .run();
+      });
+    } else {
+      // Altyazı yoksa, orijinal videoyu kullan
+      fs.copyFileSync(videoPath, videoWithSubsPath);
+    }
+
+    // ADIM 2: Altyazılı video + audio birleştir (loop ile)
+    console.log("🔀 Merging video with audio...");
+    
     const command = ffmpeg()
-      .input(videoPath)
+      .input(videoWithSubsPath)
       .inputOptions(["-stream_loop -1"])  // ✅ Video loop
       .input(audioPath)
       .videoCodec("libx264")
       .audioCodec("aac")
-      .outputOptions(["-preset ultrafast", "-shortest"])  // ✅ Audio bitince kes
+      .outputOptions(["-preset ultrafast", "-shortest"])
       .output(outputPath);
-
-    
-    // Altyazı ekle (SADECE FONT SIZE DEĞİŞTİRİLDİ)
-    if (subtitles) {
-  command.outputOptions([
-    `-vf subtitles=${subtitlePath}:force_style='FontSize=20,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2'`
-  ]);
-  }
 
     command.on("start", (cmd) => {
       console.log("🔧 FFmpeg command:", cmd);
@@ -95,7 +117,7 @@ app.post("/render", async (req, res) => {
       // Dosyayı gönder
       res.sendFile(path.resolve(outputPath), (err) => {
         // Temizlik
-        [videoPath, audioPath, subtitlePath, outputPath].forEach(file => {
+        [videoPath, videoWithSubsPath, audioPath, subtitlePath, outputPath].forEach(file => {
           if (fs.existsSync(file)) fs.unlinkSync(file);
         });
       });
@@ -106,7 +128,7 @@ app.post("/render", async (req, res) => {
       res.status(500).json({ error: err.message });
       
       // Hata durumunda temizlik
-      [videoPath, audioPath, subtitlePath, outputPath].forEach(file => {
+      [videoPath, videoWithSubsPath, audioPath, subtitlePath, outputPath].forEach(file => {
         if (fs.existsSync(file)) fs.unlinkSync(file);
       });
     });
